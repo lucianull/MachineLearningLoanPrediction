@@ -30,25 +30,6 @@ class Dataset:
 
     def __init__(self) -> None:
         self.fileNames = TRAIN_FILENAMES
-        # self.dataset = None
-        # self.structure = None
-        # self.nrFeature = None                                                           
-        # self.structureDataTypes = None
-        # self.encodingFeatures = {}                                                      #dictionary needed for encoding a feature with a limited number of options, for example gender: male, female or unknown
-        # self.encodingValues = None
-        # self.testFilename = TEST_FILENAMES
-        # self.PredictDataset = None
-        # with open(STRUCT_FILENAME) as inFile:
-        #     self.structure = inFile.readline()
-        #     self.structure = self.structure.rstrip()
-        #     self.structure = self.structure.split(',')
-        #     for feature in range(len(self.structure)):
-        #         self.encodingFeatures[feature] = {}
-        #     self.structureDataTypes = inFile.readline().rstrip().split(', ')
-        #     self.nrFeature = [int(x) for x in inFile.readline().rstrip().split(', ')]  #x is a number >= 0 if the number of options for that feature is limited, otherwise x is -1
-        #     self.encodingValues = [-1 for x in self.nrFeature]                         #number from 0 to n, where n is the limited number of options for a feature
-        # self.dataset = pd.DataFrame(columns=self.structure)
-        # self.nrFeatures = len(self.nrFeature)                                          #number of features of the dataset
 
 
     def setEncodingLabel(self, dict):
