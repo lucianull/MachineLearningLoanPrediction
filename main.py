@@ -45,27 +45,53 @@ def Run(model, dataModel, scaler):
     if learningRate != "":
         learningRate = float(learningRate)
         model.setLearningRate(learningRate)
+    
+    nametags = nametagsInput.GetText().rstrip().split(', ')
+    dict = {}
+    dict[nametags[0]] = 1                                               #setting up the encoding for True and False label
+    dict[nametags[1]] = 0
+    dict[1] = nametags[0]
+    dict[0] = nametags[1]
+    dataModel.setEncodingLabel(nametags)
 
     trainData = scaler.fit_transform(trainData)                         
     testData = scaler.transform(testData)                               #we use different function for trainData and for testData because we want to standardize the testData with the mean calculated from the trainData
 
     model.FitModel(trainData, trainDataResults)
     y = model.getCostImprovement()
-    logistic_pred, predictions = model.PredictData(testData)
+    logisticPredictions = model.PredictData(testData)
+    predictions = [0 if x <= 0.5 else 1 for x in logisticPredictions]
     accuracy = CalculateAccuracy(predictions, testDataResults)
+    truePositives = 0
+    trueNegatives = 0
+    falsePositives = 0
+    falseNegatives = 0
+    for i in range(len(testDataResults)):
+        if predictions[i] == 1 and testDataResults[i] == 1:
+            truePositives += 1
+        if predictions[i] == 0 and testDataResults[i] == 1:
+            falseNegatives += 1
+        if predictions[i] == 1 and testDataResults[i] == 0:
+            falsePositives += 1
+        if predictions[i] == 0 and testDataResults[i] == 0:
+            trueNegatives += 1
     accuracyLabel.SetText("Accuracy: " + str(round(accuracy * 100, 2)) + '%')
+    trueNegativeLabel.SetText("True Negatives: " + str(trueNegatives))
+    truePositiveLabel.SetText("True Positives: " + str(truePositives))
+    falseNegativeLabel.SetText("False Negatives: " + str(falseNegatives))
+    falsePositiveLabel.SetText("False Positives: " + str(falsePositives))
     costPlot.plot(y)
+    costPlot.set_title("Gradient Descent")
     canvas.draw()
 
 
-def StartPredicting(dataModel, scaler, radiobuttonOption):
+def StartPredicting(dataModel, scaler):
+    predictLabel.SetText('')
     ds, predictData = dataModel.getPredictDataset()
     predictData = scaler.transform(predictData)
-    logisticPredictions, predictions = model.PredictData(predictData)
-    if radiobuttonOption == '0':
-        dataModel.PrintResults(ds, logisticPredictions)
-    else:
-        dataModel.PrintResults(ds, predictions)
+    logisticPredictions = model.PredictData(predictData)
+    dataModel.PrintResults(ds, logisticPredictions, radiobuttonOption.get())
+    predictLabel.SetText("Succesfuly printed the results.")
 
 
 
@@ -82,27 +108,33 @@ if __name__ == '__main__':
     learningRateInput = InputBox(Window, 135, 30, 15, 1, BOX_BACKGROUND, FONT_COLOR, 1)
     iterationsLabel = LabelBox(Window, 300, 30, 'Nr. Iterations:', BACKGROUND_COLOR, FONT_COLOR)
     iterationsInput = InputBox(Window, 410, 30, 15, 1, BOX_BACKGROUND, FONT_COLOR, 1)
-    costImprovementLabel = LabelBox(Window, 570, 30, 'Nr. Iterations for Tracking Cost:', BACKGROUND_COLOR, FONT_COLOR)
+    costImprovementLabel = LabelBox(Window, 570, 30, 'Nr. Iterations for Tracking Error:', BACKGROUND_COLOR, FONT_COLOR)
     costInput = InputBox(Window, 800, 30, 15, 1, BOX_BACKGROUND, FONT_COLOR, 1)
-    # warningLabel = LabelBox(Window, 350, 75, 'Leave empty if test data is provided:', BACKGROUND_COLOR, FONT_COLOR)
-    trainRatioLabel = LabelBox(Window, 180, 85, 'Train Ratio:', BACKGROUND_COLOR, FONT_COLOR)
-    trainRatioInput = InputBox(Window, 280, 85, 15, 1, BOX_BACKGROUND, FONT_COLOR, 1)
-    testRatioLabel = LabelBox(Window, 530, 85, 'Test Ratio:', BACKGROUND_COLOR, FONT_COLOR)
-    testRatioInput = InputBox(Window, 630, 85, 15, 1, BOX_BACKGROUND, FONT_COLOR, 1)
-    radiobuttonOption = StringVar()
-    likelihoodRadioButton = RadioBox(Window, 200, 125, "Return the likelihood of the event", "0", radiobuttonOption, BACKGROUND_COLOR, FONT_COLOR)
-    boolRadioButton = RadioBox(Window, 600, 125, "Return the predicted value", "1", radiobuttonOption, BACKGROUND_COLOR, FONT_COLOR)
+    trainRatioLabel = LabelBox(Window, 20, 85, 'Train Ratio:', BACKGROUND_COLOR, FONT_COLOR)
+    trainRatioInput = InputBox(Window, 135, 85, 15, 1, BOX_BACKGROUND, FONT_COLOR, 1)
+    testRatioLabel = LabelBox(Window, 300, 85, 'Test Ratio:', BACKGROUND_COLOR, FONT_COLOR)
+    testRatioInput = InputBox(Window, 410, 85, 15, 1, BOX_BACKGROUND, FONT_COLOR, 1)
+    nametagsLabel = LabelBox(Window, 570, 85, 'True, Negative:', BACKGROUND_COLOR, FONT_COLOR)
+    nametagsInput = InputBox(Window, 800, 85, 15, 1, BOX_BACKGROUND, FONT_COLOR, 1)
+    radiobuttonOption = IntVar()
+    likelihoodRadioButton = RadioBox(Window, 200, 125, "Return the likelihood of the event", 0, radiobuttonOption, BACKGROUND_COLOR, FONT_COLOR)
+    boolRadioButton = RadioBox(Window, 600, 125, "Return the predicted value", 1, radiobuttonOption, BACKGROUND_COLOR, FONT_COLOR)
     startButton = ButtonBox(Window, 465, 165, "   Start   ", BOX_BACKGROUND, FONT_COLOR, BOX_BACKGROUND, FONT_COLOR, Run, model, dataModel, scaler)
-    accuracyLabel = LabelBox(Window, 456, 225, "Accuracy: ", BACKGROUND_COLOR, FONT_COLOR)
+    accuracyLabel = LabelBox(Window, 436, 245, "", BACKGROUND_COLOR, FONT_COLOR)
+    trueNegativeLabel = LabelBox(Window, 130, 210, "", BACKGROUND_COLOR, FONT_COLOR)
+    truePositiveLabel = LabelBox(Window, 320, 210, "", BACKGROUND_COLOR, FONT_COLOR)
+    falseNegativeLabel = LabelBox(Window, 510, 210, "", BACKGROUND_COLOR, FONT_COLOR)
+    falsePositiveLabel = LabelBox(Window, 700, 210, "", BACKGROUND_COLOR, FONT_COLOR)
 
     costFigure = Figure(figsize=(5,3), dpi = 100)
     costPlot = costFigure.add_subplot(111)
+    
     canvas = FigureCanvasTkAgg(costFigure, master=Window)
     canvas.draw()
     canvas.get_tk_widget().place(x=250, y=280)
 
-    predictButton = ButtonBox(Window, 450, 625, "Start Predicting", BOX_BACKGROUND, FONT_COLOR, BOX_BACKGROUND, FONT_COLOR, StartPredicting, dataModel, scaler, radiobuttonOption)
-
+    predictButton = ButtonBox(Window, 450, 625, "Start Predicting", BOX_BACKGROUND, FONT_COLOR, BOX_BACKGROUND, FONT_COLOR, StartPredicting, dataModel, scaler)
+    predictLabel = LabelBox(Window, 390, 660, '', BACKGROUND_COLOR, FONT_COLOR)
 
 
     Window.mainloop()

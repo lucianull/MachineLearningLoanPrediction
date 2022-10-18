@@ -58,6 +58,5 @@ class LogisticRegression:
     def PredictData(self, dataset):
         liniarPredictions = np.dot(dataset, self.weights) + self.bias
         logisticPredictions = self.SigmoidFunction(liniarPredictions)
-        predictions = [0 if x <= 0.5 else 1 for x in logisticPredictions]
-        return logisticPredictions, np.array(predictions)
+        return logisticPredictions
 
